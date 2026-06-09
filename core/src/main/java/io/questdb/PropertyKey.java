@@ -385,6 +385,7 @@ public enum PropertyKey implements ConfigPropertyKey {
     LINE_UDP_COMMIT_MODE("line.udp.commit.mode"),
     LINE_UDP_TIMESTAMP("line.udp.timestamp"),
     LINE_TCP_ENABLED("line.tcp.enabled"),
+    LINE_TCP_DRY_RUN_ENABLED("line.tcp.dry.run.enabled"),
     LINE_HTTP_ENABLED("line.http.enabled"),
     LINE_HTTP_MAX_RECV_BUFFER_SIZE("line.http.max.recv.buffer.size"),
     LINE_HTTP_PING_VERSION("line.http.ping.version"),

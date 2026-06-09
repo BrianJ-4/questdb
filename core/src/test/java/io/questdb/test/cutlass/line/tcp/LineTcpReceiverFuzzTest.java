@@ -153,6 +153,13 @@ public class LineTcpReceiverFuzzTest extends AbstractLineTcpReceiverFuzzTest {
     }
 
     @Test
+    public void testReorderingAddSkipDuplicateWithNonAsciiSymbolsWithSpace() throws Exception {
+        initLoadParameters(100, Os.isWindows() ? 3 : 5, 5, 5, 50);
+        initFuzzParameters(4, 4, 4, -1, 4, true, true, true);
+        runTest();
+    }
+
+    @Test
     public void testReorderingColumns() throws Exception {
         initLoadParameters(100, Os.isWindows() ? 3 : 5, 5, 5, 50);
         initFuzzParameters(-1, 4, -1, -1, -1, false, true, false);

@@ -320,6 +320,11 @@ public class LineTcpReceiverConfigurationWrapper implements LineTcpReceiverConfi
     }
 
     @Override
+    public boolean isDryRunEnabled() {
+        return getDelegate().isDryRunEnabled();
+    }
+
+    @Override
     public boolean isEnabled() {
         return getDelegate().isEnabled();
     }

@@ -217,6 +217,11 @@ public class DefaultLineTcpReceiverConfiguration extends DefaultIODispatcherConf
     }
 
     @Override
+    public boolean isDryRunEnabled() {
+        return false;
+    }
+
+    @Override
     public boolean isEnabled() {
         return true;
     }
