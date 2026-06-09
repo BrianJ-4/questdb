@@ -79,6 +79,7 @@ public class LineTcpMeasurementScheduler implements Closeable {
     private final DefaultColumnTypes defaultColumnTypes;
     private final CairoEngine engine;
     private final LowerCaseCharSequenceObjHashMap<TableUpdateDetails> idleTableUpdateDetailsUtf16;
+    private final boolean isDryRun;
     private final LineWalAppender lineWalAppender;
     private final long[] loadByWriterThread;
     private final ObjList<NetworkIOJob> netIoJobs;
@@ -105,6 +106,7 @@ public class LineTcpMeasurementScheduler implements Closeable {
             this.engine = engine;
             this.telemetry = engine.getTelemetry();
             CairoConfiguration cairoConfiguration = engine.getConfiguration();
+            this.isDryRun = lineConfiguration.isDryRunEnabled();
             this.configuration = lineConfiguration;
             this.clock = cairoConfiguration.getMillisecondClock();
             this.spinLockTimeoutMs = cairoConfiguration.getSpinLockTimeout();
@@ -297,6 +299,12 @@ public class LineTcpMeasurementScheduler implements Closeable {
             LineTcpConnectionContext ctx,
             LineTcpParser parser
     ) throws Exception {
+        if (this.isDryRun) {
+            // ILP payload has successfully passed parsing and validation.
+            // Return false to tell the network thread to drop the data and continue to next line.
+            LOG.info().$("BRIAN-HIT");
+            return false;
+        }
         DirectUtf8Sequence measurementName = parser.getMeasurementName();
         TableUpdateDetails tud;
         try {

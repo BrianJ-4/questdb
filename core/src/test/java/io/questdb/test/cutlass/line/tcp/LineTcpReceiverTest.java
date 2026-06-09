@@ -96,6 +96,8 @@ import java.util.function.Supplier;
 import static io.questdb.cutlass.auth.AuthUtils.EC_ALGORITHM;
 import static io.questdb.test.tools.TestUtils.assertEventually;
 
+import io.questdb.cutlass.line.tcp.LineTcpReceiverConfigurationWrapper;
+
 public class LineTcpReceiverTest extends AbstractLineTcpReceiverTest {
     private final static Log LOG = LogFactory.getLog(LineTcpReceiverTest.class);
     private static final long TEST_TIMEOUT_IN_MS = 120000;
@@ -515,6 +517,53 @@ public class LineTcpReceiverTest extends AbstractLineTcpReceiverTest {
                     """;
             assertTable(expected, weather);
         }, false, 250);
+    }
+
+    @Test
+    public void testDryRunDropsDataAndLogs() throws Exception {
+        assertMemoryLeak(() -> {
+            // 1. Wrap test's built-in configuration and force Dry-Run to true
+            LineTcpReceiverConfigurationWrapper dryRunConfig = new LineTcpReceiverConfigurationWrapper(engine.getMetrics()) {
+                @Override
+                public boolean isDryRunEnabled() {
+                    return true;
+                }
+            };
+            // Delegate everything else to base test config
+            dryRunConfig.setDelegate(lineConfiguration);
+
+            // Start  receiver manually with custom dry-run configuration
+            try (LineTcpReceiver receiver = new LineTcpReceiver(dryRunConfig, engine, sharedWorkerPool, sharedWorkerPool)) {
+                sharedWorkerPool.start(LOG);
+
+                try {
+                    String tableName = "sensors_dry_run";
+                    String lineData = tableName + ",location=us-west temperature=75.5 1680000000000000\n";
+
+                    // Connect and send payload using test framework's custom Socket
+                    try (Socket socket = getSocket()) {
+                        sendToSocket(socket, lineData);
+                    }
+
+                    Os.sleep(250);
+                    if (walEnabled) {
+                        drainWalQueue();
+                    }
+
+                    // Verification: The table should NOT exist
+                    try {
+                        engine.getTableWriterAPI(tableName, "test");
+                        Assert.fail("The table '" + tableName + "' should not exist in Dry-Run mode!");
+                    } catch (io.questdb.cairo.CairoException e) {
+                        // We EXPECT a CairoException because the data hit the Black Hole
+                        Assert.assertTrue("Expected 'table does not exist' but got: " + e.getMessage(),
+                                e.getMessage().contains("table does not exist"));
+                    }
+                } finally {
+                    sharedWorkerPool.halt();
+                }
+            }
+        });
     }
 
     @Test

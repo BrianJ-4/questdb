@@ -100,6 +100,8 @@ public interface LineTcpReceiverConfiguration extends IODispatcherConfiguration 
 
     WorkerPoolConfiguration getWriterWorkerPoolConfiguration();
 
+    boolean isDryRunEnabled();
+
     boolean isEnabled();
 
     boolean isStringToCharCastAllowed();
